@@ -16,7 +16,7 @@ class SitemapImages extends Sitemap
      *
      * @throws \InvalidArgumentException
      */
-    public function addImage($location, $images)
+    public function addImage($location, $images, $lastModified = null, $changeFrequency = null, $priority = null)
     {
         if ($this->urlsCount >= $this->maxUrls) {
             $this->finishFile();
@@ -27,7 +27,7 @@ class SitemapImages extends Sitemap
             $this->createNewFile();
         }
 
-        $this->addGroupingImage($location, $images);
+        $this->addGroupingImage($location, $images, $lastModified, $changeFrequency, $priority);
 
         $this->urlsCount++;
 
@@ -46,13 +46,37 @@ class SitemapImages extends Sitemap
      *
      * @see addItem
      */
-    private function addGroupingImage($location, $images)
+    private function addGroupingImage($location, $images, $lastModified, $changeFrequency, $priority)
     {
         $this->validateLocation($location);
 
         $this->writer->startElement('url');
 
         $this->writer->writeElement('loc', $location);
+
+        if ($lastModified !== null) {
+            $this->writer->writeElement('lastmod', date('c', $lastModified));
+        }
+
+        if ($changeFrequency !== null) {
+            if (!in_array($changeFrequency, $this->validFrequencies, true)) {
+                throw new \InvalidArgumentException(
+                    'Please specify valid changeFrequency. Valid values are: '
+                    . implode(', ', $this->validFrequencies)
+                    . "You have specified: {$changeFrequency}."
+                );
+            }
+            $this->writer->writeElement('changefreq', $changeFrequency);
+        }
+
+        if ($priority !== null) {
+            if (!is_numeric($priority) || $priority < 0 || $priority > 1) {
+                throw new \InvalidArgumentException(
+                    "Please specify valid priority. Valid values range from 0.0 to 1.0. You have specified: {$priority}."
+                );
+            }
+            $this->writer->writeElement('priority', number_format($priority, 1, '.', ','));
+        }
 
         if(is_array($images)) {
             foreach ($images AS $image) {

@@ -79,7 +79,7 @@ class Sitemap
     /**
      * @var array valid values for frequency parameter
      */
-    private $validFrequencies = array(
+    protected $validFrequencies = array(
         self::ALWAYS,
         self::HOURLY,
         self::DAILY,
